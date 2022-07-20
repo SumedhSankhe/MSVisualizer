@@ -1,0 +1,6 @@
+x="library(shiny)library(shinydashboard)library(plotly)library(shinyBS)library(DT)library(data.table)library(lsa)library(dplyr)library(Rtsne)library(umap)library(shinyjs)library(ggplot2)library(caret)library(readxl)library(pheatmap)library(dendextend)library(shinycssloaders)library(ComplexUpset)library(EnhancedVolcano)library(limma)library(qvalue)library(stringr)library(factoextra)library(FactoMineR)library(org.Hs.eg.db)library(cowplot)library(biomaRt)library(clusterProfiler)library(enrichplot)library(DOSE)library(scales)library(ggiraph)library(colourpicker)library(svglite)"
+
+
+paste(unlist(strsplit(gsub('\\)','',gsub('library\\(',' ',x)), ' ')), collapse = ', ')
+
+       
