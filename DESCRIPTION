@@ -7,6 +7,6 @@ Maintainer: Sumedh Sankhe <sankhe.sumedh@gene.com>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GNE
-Depends: shiny, shinydashboard, plotly, shinyBS, DT, data.table, lsa, dplyr, Rtsne, umap, shinyjs, ggplot2, caret, readxl, pheatmap, dendextend, shinycssloaders, ComplexUpset, EnhancedVolcano, qvalue, stringr, factoextra, scales, colourpicker, svglite
+Depends: shiny, shinydashboard, plotly, shinyBS, DT, data.table, shinyjs, readxl, shinycssloaders, colourpicker, svglite, dendextend
 Encoding: UTF-8
 LazyData: true

@@ -93,12 +93,9 @@ heatmapPanel <- function(input, output, session, getData) {
     rv$abun_matrix <-as.matrix(abundance[,-'UniProtID'])
     row.names(rv$abun_matrix) <- abundance$UniProtID
     annotations <- getData()[[2]]
-    annotations[, Sample := gsub('-','.', Sample)]
-    sample_col <- annotations[,.(get(input$column_col))]
-    names(sample_col) <- input$column_col
-    row.names(sample_col) <- annotations[,Sample]
-    rv$sample_col <- sample_col
 
+    rv$sample_col <- create_annotation_col(ann = annotations,
+                                           col = isolate(input$column_col))
 
     output$heatmapPlot <-  renderPlot({
       pheatmap::pheatmap(rv$abun_matrix, cluster_rows = TRUE,
@@ -166,7 +163,7 @@ transform_data <- function(dt, arg){
 
 hierarchial_clustering <- function(dt, clusters){
   clust <- hclust(dist(dt[,-'UniProtID']), method = "complete")
-  gene_clusters <- cutree(tree = as.dendrogram(clust), k =clusters)
+  gene_clusters <- dendextend::cutree(tree = as.dendrogram(clust), k =clusters)
   gene_clusters <- data.frame(Gene.Cluster=paste0("cluster-", gene_clusters))
   row.names(gene_clusters) <- dt[,UniProtID]
   list('clusters'=gene_clusters, 'dendogram' = as.dendrogram(clust))

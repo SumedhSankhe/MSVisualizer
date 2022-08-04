@@ -5,12 +5,15 @@ library(shinyBS)
 library(DT)
 library(data.table)
 library(shinyjs)
-library(ggplot2)
 library(readxl)
 library(shinycssloaders)
 library(colourpicker)
-library(svglite)
 
+
+
+
+#library(ggplot2)
+#library(svglite)
 #library(dendextend)
 #library(caret)
 #library(ComplexUpset)
@@ -46,3 +49,11 @@ source("R/diffExprPanel.R")
 
 shinyjs::useShinyjs()
 graphics.off()
+
+create_annotation_col <- function(ann, col){
+  ann[, Sample := gsub('-','.', Sample)]
+  sample_col <- ann[, .(get(col))]
+  names(sample_col) <- col
+  row.names(sample_col) <- ann[,Sample]
+  sample_col
+}

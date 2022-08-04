@@ -1,18 +1,22 @@
 cosinePanelUI <- function(id) {
   ns <- NS(id)
   tagList(
-    h3("cosinePlot"),
+    h3("Cosine Similarity/Dissimilarity plots"),
     fluidRow(
-      box( title = "Cosine Similarity Plot & Visualization", width = 4, status = "warning",
+      box( title = "Control Box", width = 4, status = "warning",
            tabBox(id = "cosinePlot", height = "100%", width = "100%",
                   tabPanel("cosinePlot",
                            selectInput(inputId = ns('column_col'),
                                        label = 'Color Samples By: ',
                                        choices = c('Disease', 'Condition')
-                           ),                           
-                           actionButton(ns("cosinePlotButton"), 
-                                        label = "Submit", 
-                                        icon("paper-plane"), 
+                           ),
+                           selectInput(inputId = ns('dissim'),
+                                       label = 'Measure',
+                                       choice = c('Similarity', 'Dissimilarity')
+                           ),
+                           actionButton(ns("cosinePlotButton"),
+                                        label = "Submit",
+                                        icon("paper-plane"),
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"
                            )
                   ),
@@ -22,7 +26,7 @@ cosinePanelUI <- function(id) {
                            selectInput(inputId = ns('plot_type'),
                                        label = 'Plot Type: ',
                                        choices = c('svg', 'png', 'pdf')
-                           )                           
+                           )
                   )
            )
       ),
@@ -34,7 +38,7 @@ cosinePanelUI <- function(id) {
         ),
         HTML("<br>"),
         downloadButton(ns('downloadCosineplot'), "Download Plot")
-        
+
       )
     )
   )
@@ -42,39 +46,27 @@ cosinePanelUI <- function(id) {
 
 cosinePanel <- function(input, output, session, getData) {
   ns <- session$ns
-  
-  getDataMatrix <- eventReactive( input$cosinePlotButton, {
-    df <- data.frame(getData()[[1]])
-    row.names(df) <- df[,1]
-    cosine_matrix <- cosine(as.matrix(df[,2:ncol(df)]))
-    cosine_matrix
+  rv <- reactiveValues()
+  observeEvent(input$cosinePlotButton,{
+     abundance <- getData()[[1]]
+     annotations <- getData()[[2]]
+
+     abundance_mat <- as.matrix(abundance[,-'UniProtID'])
+     rv$similarity <- calc_cosine_similarity(matrix = t(abundance_mat))
+
+     if(input$dissim != 'Similarity'){
+       rv$similarity <- as.dist(1-rv$similarity)
+     }
+
+     rv$sample_col <- create_annotation_col(ann = annotations,
+                                            col = isolate(input$column_col))
+
+     output$cosinePlot <- renderPlot({
+       pheatmap::pheatmap(rv$similarity, annotation_col = rv$sample_col)
+     })
   })
 
-  gen_cosineplot <- reactive({
-    req(getDataMatrix())
-    df <- getDataMatrix()
-    sample_category_df <- data.frame(getData()[[2]])
-    sample_category_df$Sample <- gsub("-", ".", sample_category_df$Sample)
-    sample_col <- data.frame(SampleType=sample_category_df[isolate(input$column_col)])
-    row.names(sample_col) <- sample_category_df$Sample
-    p <- pheatmap(df, annotation_col = sample_col)
-    return(p)
-    
-  })
-    
-  output$cosinePlot <- renderPlot({
-    req(getDataMatrix())
-    p <- gen_cosineplot()
-    p
-  })
-  
-  # output$downloadCosineplot <- downloadHandler(
-  #   filename = "cosine_plot.svg",
-  #   content = function(file) {
-  #     ggsave(file, plot = gen_cosineplot(), device = "svg", width = input$plot_width, height = input$plot_height, units="in")
-  #   }
-  # )
-  
+
   output$downloadCosineplot <- downloadHandler(
     filename = function() {
       paste("cosine_plot", input$plot_type, sep=".")
@@ -91,10 +83,18 @@ cosinePanel <- function(input, output, session, getData) {
                 pdf(file, width = input$plot_width, height = input$plot_height)
               }
       )
-      plot = gen_cosineplot()
-      print(plot)
+      pheatmap::pheatmap(rv$similarity, annotation_col = rv$sample_col)
       dev.off()
     }
   )
-  
+
 }
+
+#https://stats.stackexchange.com/questions/31565/compute-a-cosine-dissimilarity-matrix-in-r
+calc_cosine_similarity <- function(matrix){
+  sim <- matrix/sqrt(rowSums(matrix*matrix))
+  sim%*%t(sim)
+}
+
+
+

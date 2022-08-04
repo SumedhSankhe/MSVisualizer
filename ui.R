@@ -25,7 +25,7 @@ sidebar <- dashboardSidebar(
 bodyHome <- tabItem(tabName = "home", homePanelUI("home"))
 bodyLoad <- tabItem(tabName = "load", loadPanelUI("loadPanel"))
 bodyHeatmap <- tabItem(tabName = "heatmap", heatmapPanelUI("heatmapPanel"))
-#bodyCosine <- tabItem(tabName = "cosine", cosinePanelUI("cosinePanel"))
+bodyCosine <- tabItem(tabName = "cosine", cosinePanelUI("cosinePanel"))
 #bodyUpsetPlot <- tabItem(tabName = "upsetplot", upsetPlotPanelUI("upsetPlotPanel"))
 #bodyDiffExpr <- tabItem(tabName = "diffExpr", diffExprPanelUI("diffExprPanel"))
 #bodyUnivariate <- tabItem(tabName = "univariate", univariatePlotPanelUI("univariatePanel"))
@@ -49,9 +49,9 @@ shinyUI(dashboardPage(
             #Upload Data
             bodyLoad,
             #Heatmap
-            bodyHeatmap
+            bodyHeatmap,
             #CosineSimilarity
-            #bodyCosine,
+            bodyCosine
             #Upset Plot
             #bodyUpsetPlot,
             #Differential Expression
