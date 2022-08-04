@@ -46,17 +46,17 @@ heatmapPanelUI <- function(id) {
     fluidRow(
       box(title = "Visualization", status = 'warning', height = '100%',
           width = 12,
-          tabBox(
+          tabBox(width = 12,
             tabPanel(title = "Heatmap",
-                     (div(style='width:900px;overflow-x: scroll;height:900px;overflow-y: scroll;',
+                     (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
                           shinycssloaders::withSpinner(
                             plotOutput(ns("heatmapPlot"))),
                           downloadButton(ns('downloadHeatmap'), "Download Plot")
                      ))),
             tabPanel("Genes-Dendogram",
-                     (div(style='width:900px;overflow-x: scroll;height:900px;overflow-y: scroll;',
+                     (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
                           shinycssloaders::withSpinner(
-                            plotOutput(ns("dendogramPlot"), width = "800px", height = "800px"))
+                            plotOutput(ns("dendogramPlot")))
                      ))
             ),
             tabPanel("Gene-Clusters", width = '100%',

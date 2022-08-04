@@ -67,7 +67,8 @@ loadPanel <- function(input, output, session) {
   #upset by group data output
   output$groupOutput <- DT::renderDataTable({
     req(input$localfile)
-    upset_by_group <- get_upset_by_group(countsData()[[2]], countsData()[[1]])
+    upset_by_group <- get_upset_by_group(countsData()[[2]], countsData()[[1]],
+                                         group = 'Disease')
     DT::datatable(upset_by_group, options = list(scrollX=TRUE, scrollCollapse=TRUE))
   })
 

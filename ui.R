@@ -27,7 +27,7 @@ bodyLoad <- tabItem(tabName = "load", loadPanelUI("loadPanel"))
 bodyHeatmap <- tabItem(tabName = "heatmap", heatmapPanelUI("heatmapPanel"))
 bodyCosine <- tabItem(tabName = "cosine", cosinePanelUI("cosinePanel"))
 bodyUpsetPlot <- tabItem(tabName = "upsetplot", upsetPlotPanelUI("upsetPlotPanel"))
-#bodyDiffExpr <- tabItem(tabName = "diffExpr", diffExprPanelUI("diffExprPanel"))
+bodyDiffExpr <- tabItem(tabName = "diffExpr", diffExprPanelUI("diffExprPanel"))
 #bodyUnivariate <- tabItem(tabName = "univariate", univariatePlotPanelUI("univariatePanel"))
 #bodyDimRed <- tabItem(tabName = "dimred",  dimReductionUI("dimReduction"))
 
@@ -53,9 +53,9 @@ shinyUI(dashboardPage(
             #CosineSimilarity
             bodyCosine,
             #Upset Plot
-            bodyUpsetPlot
+            bodyUpsetPlot,
             #Differential Expression
-            #bodyDiffExpr,
+            bodyDiffExpr
             #Univariate
             #bodyUnivariate,
             #Dimensionality Reduction

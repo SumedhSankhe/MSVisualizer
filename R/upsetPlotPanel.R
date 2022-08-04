@@ -18,10 +18,12 @@ upsetPlotPanelUI <- function(id) {
                            )
                   ),
                   tabPanel(tagList(shiny::icon("gear"), "Download Settings"),
-                           #checkboxInput(inputId=ns('empty_intersections'), label="Show Empty Sets: ", value = FALSE, width = NULL),
+                           #checkboxInput(inputId=ns('empty_intersections'),
+                           #label="Show Empty Sets: ", value = FALSE, width = NULL),
                            #selectInput(inputId = ns('mode_type'),
                            #             label = 'Mode: ',
-                           #             choices = c('exclusive_intersection', 'inclusive_intersection', 'exclusive_union', 'inclusive_union')),
+                           #             choices = c('exclusive_intersection',
+                           #'inclusive_intersection', 'exclusive_union', 'inclusive_union')),
                            numericInput(inputId = ns('label_size'),
                                         label = 'Label Size: ', value='15'),
                            numericInput(inputId = ns('plot_width'),
@@ -40,14 +42,14 @@ upsetPlotPanelUI <- function(id) {
         tabBox(id = "displayTab", height = "100%", width = "100%",
                tabPanel(title="Upset Plot",
                         shinycssloaders::withSpinner(
-                          (div(style='width:800px;overflow-x: scroll;height:800px;overflow-y: scroll;',
+                          (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
                                plotOutput(ns("upsetPlot"))))
                         ),
                         HTML("<br>"),
                         downloadButton(ns('downloadUpsetplot'), "Download Plot")
                ),
                tabPanel("Upset Results",
-                        (div(style='width:800px;overflow-x: scroll;height:800px;overflow-y: scroll;',
+                        (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
                              dataTableOutput(ns("upsetResults")))),
                         HTML("<br>"),
                         downloadButton(ns("downloadUpsetReport"), "Download csv")
@@ -77,7 +79,7 @@ upsetPlotPanel <- function(input, output, session, getData) {
                                                  group = 'Disease')
             }
     )
-    rn <- upset_matrix[,(UniProtID)]
+    rn <- rv$upset_matrix[,(UniProtID)]
     rv$upset_matrix <- rapply(rv$upset_matrix[,-'UniProtID'], as.logical,
                            classes = 'numeric', how = 'replace')
     rownames(rv$upset_matrix) <- rn
@@ -87,7 +89,7 @@ upsetPlotPanel <- function(input, output, session, getData) {
                                    intersect = colnames(rv$upset_matrix),
                                    #mode = input$mode_type,
                                    min_size = input$min_size,
-                                   names = input$upset_by)+
+                                   name = input$upset_by)+
       theme(text = element_text(size = input$label_size))
     ##########
     # if (input$empty_intersections) {
@@ -121,7 +123,7 @@ upsetPlotPanel <- function(input, output, session, getData) {
     })
 
     output$upsetResults <- DT::renderDataTable({
-      req(upset_matrix)
+      req(rv$upset_matrix)
       DT::datatable(rv$upset_matrix, filter = "top")
     }, server = FALSE)
 

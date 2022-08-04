@@ -32,9 +32,9 @@ cosinePanelUI <- function(id) {
       ),
       box(
         status = "warning", width = 8,
-          (div(style='width:900px;overflow-x: scroll;height:900px;overflow-y: scroll;',
+          (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
                shinycssloaders::withSpinner(
-               plotOutput(ns("cosinePlot"), width = "800px", height = "800px")))
+               plotOutput(ns("cosinePlot"))))
         ),
         HTML("<br>"),
         downloadButton(ns('downloadCosineplot'), "Download Plot")
