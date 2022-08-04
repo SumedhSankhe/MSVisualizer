@@ -6,9 +6,12 @@ loadPanelUI <- function(id) {
       box( title = "Data upload & settings", width = 4, status = "warning",
            tabBox(id = "loadtab", height = "100%", width = "100%",
                   tabPanel("Upload",
-                           fileInput( ns('localfile'), label = "Choose file to upload", accept = c('.xls', '.xlsx') ),
+                           fileInput( ns('localfile'),
+                                      label = "Choose file to upload",
+                                      accept = c('.xls', '.xlsx') ),
                            div(style = "margin-top:-25px"),
-                           a(href="MSdata.xlsx", "Example: MSdata.xlsx", download=NA, target="_blank")
+                           a(href="MSdata.xlsx", "Example: MSdata.xlsx",
+                             download=NA, target="_blank")
                   )
            )
       ),
@@ -28,75 +31,86 @@ loadPanelUI <- function(id) {
                ),
                tabPanel("Classification",
                         dataTableOutput(ns("classificationOutput"))
-               )
-        )
-      )
+               )))
     )
   )
 }
 
 loadPanel <- function(input, output, session) {
+
   countsData <- reactive({
     req(input$localfile)
-    data_list <- lapply(excel_sheets(input$localfile$datapath), read_excel, path=input$localfile$datapath)
-    #df <- read.csv(input$localfile$datapath, sep=",", row.names = NULL, header=TRUE, stringsAsFactors = FALSE)
+    path <- input$localfile$datapath
+    #get sheets information
+    sheets <- readxl::excel_sheets(path = path)
+    # read each sheet sequentially as a data.table in the data_list object
+    data_list <- lapply(sheets, function(x){
+      as.data.table(
+        readxl::read_excel(path = path, sheet = x)
+      )
+    })
+
+    #sanitize column names and other name variables
     colnames(data_list[[1]]) <- make.names(colnames(data_list[[1]]))
     data_list[[2]]$Sample <- make.names(data_list[[2]]$Sample)
     data_list[[2]]$Condition <- make.names(data_list[[2]]$Condition)
     data_list[[2]]$Disease <- make.names(data_list[[2]]$Disease)
     return(data_list)
   })
-  
+
+  #render the stats about the read in file
   output$tableOutput <- DT::renderDataTable({
     req(input$localfile)
-    DT::datatable(data.frame(countsData()[[1]]), options = list(scrollX=TRUE, scrollCollapse=TRUE))
+    DT::datatable(countsData()[[1]], options = list(scrollX=TRUE, scrollCollapse=TRUE))
   })
-  
+
+  #upset by group data output
   output$groupOutput <- DT::renderDataTable({
     req(input$localfile)
-    upset_by_group <- get_upset_by_group(countsData())
+    upset_by_group <- get_upset_by_group(countsData()[[2]], countsData()[[1]])
     DT::datatable(upset_by_group, options = list(scrollX=TRUE, scrollCollapse=TRUE))
   })
-  
+
+  #upset by sample data output
   output$sampleOutput <- DT::renderDataTable({
     req(input$localfile)
-    upset_by_sample <- get_upset_by_sample(countsData())
-    DT::datatable(upset_by_sample, options = list(scrollX=TRUE, scrollCollapse=TRUE))
+    DT::datatable(get_upset_by_sample(matrix_stats = countsData()[[1]]),
+                  options = list(scrollX=TRUE, scrollCollapse=TRUE))
   })
-  
+
+  #
   output$classificationOutput <- DT::renderDataTable({
     req(input$localfile)
-    DT::datatable(data.frame(countsData()[[2]]), options = list(scrollX=TRUE, scrollCollapse=TRUE))
+    DT::datatable(countsData()[[2]], options = list(scrollX=TRUE, scrollCollapse=TRUE))
   })
-  
+
   return(countsData)
 }
 
-get_upset_by_sample <- function(data_list) {
-  matrix_stats <- data.frame(data_list[[1]])
-  row.names(matrix_stats) <- matrix_stats$UniProtID
-  matrix_stats <- matrix_stats[,2:ncol(matrix_stats)]
-  upset_by_sample <- floor(matrix_stats)
-  upset_by_sample[upset_by_sample > 0] <- 1
-  return(upset_by_sample)
+
+
+
+get_upset_by_sample <- function(matrix_stats) {
+  dt <- rapply(matrix_stats, floor, classes = 'numeric', how = 'replace')
+  idx <- which(names(dt) == 'UniProtID')
+  dt[, names(dt)[-idx] := lapply(.SD, function(x) as.integer(x!=0)), .SDcols = 2:ncol(dt)]
+  dt
 }
 
-get_upset_by_group <- function(data_list) {
-  sample_category_df <- data.frame(data_list[[2]])
-  sample_category_df$Sample <- gsub("-", ".", sample_category_df$Sample)
-  diseases <- unique(sample_category_df$Disease)
-  upset_by_sample <- get_upset_by_sample(data_list)
-  upset_by_group <- data.frame( matrix(ncol=length(diseases), nrow = nrow(upset_by_sample)) )
-  colnames(upset_by_group) <- diseases
-  rownames(upset_by_group) <- rownames(upset_by_sample)
-  for (disease in diseases ) {
-    col_names <- sample_category_df[sample_category_df$Disease == disease, "Sample"]
-    if( length(col_names) > 1) {
-      upset_by_group[disease] <- rowSums(upset_by_sample[, col_names])
-    } else {
-      upset_by_group[disease] <- upset_by_sample[, col_names]
-    }
-  }
-  upset_by_group[upset_by_group > 0] <- 1
-  return(upset_by_group)
+get_upset_by_group <- function(dt, dt2) {
+  dt$Sample <- gsub("-", ".", dt$Sample)
+  diseases <- unique(dt$Disease)
+  upset_by_sample <- get_upset_by_sample(matrix_stats = dt2)
+
+  dt_list <- lapply(diseases, function(x){
+    col_names <- dt[Disease ==x, Sample]
+    ubg <- upset_by_sample[, rowSums(.SD), .SDcols = col_names, by = UniProtID]
+    setkeyv(ubg, 'UniProtID')
+    ubg[, V1:= ifelse(V1>0,1,0)]
+    names(ubg)[2] <- x
+    ubg
+  })
+
+  upset_by_group <- Reduce(function(...) merge(..., all = TRUE), dt_list)
+  upset_by_group
 }

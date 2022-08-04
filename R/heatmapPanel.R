@@ -3,64 +3,67 @@ heatmapPanelUI <- function(id) {
   tagList(
     h3("HeatMap"),
     fluidRow(
-      box( title = "Heatmap & Visualization", width = 4, status = "warning",
-           tabBox(id = "heatmap", height = "100%", width = "100%",
-                  tabPanel("Heatmap",
-                           selectInput(inputId = ns('column_col'),
-                                       label = 'Color Samples By: ',
-                                       choices = c('Disease', 'Condition')
-                           ),
-                           numericInput(inputId = ns('row_clusters'), label = '# Gene Clusters: ', value='2'),
-                           actionButton(ns("heatmapButton"), 
-                                        label = "Submit", 
-                                        icon("paper-plane"), 
-                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"
-                           )
-                  ),
-                  tabPanel(tagList(shiny::icon("gear"), "Settings"),
-                           numericInput(inputId = ns('most_abundant_genes'), label = '# Top Genes (Selected By Abundance): ', value='0'),
-                           selectInput(inputId = ns('transform_type'),
-                                       label = 'Transform Method: ',
-                                       choices = list("None", "log2", "asinh"), # "logicle")
-                                       selected = 'None'
-                           ),
-                           conditionalPanel("input.transform_type == 'asinh'", ns=ns,
-                                            numericInput(inputId = ns('cofactor'), label = 'Co-factor: ', value='5')
-                           ),
-                           numericInput(inputId = ns('plot_width'), label = 'Plot Width: ', value='10'),
-                           numericInput(inputId = ns('plot_height'), label = 'Plot Height: ', value='10'),
-                           selectInput(inputId = ns('plot_type'),
-                                       label = 'Plot Type: ',
-                                       choices = c('svg', 'png', 'pdf')
-                           )
-                  )
-           )
-      ),
-      box(
-        status = "warning", width = 8,
-        tabBox(id = "displayTab", height = "100%", width = "100%",
-          tabPanel("heatmapTab",
-            (div(style='width:1000px;overflow-x: scroll;height:1000px;overflow-y: scroll;',
-               shinycssloaders::withSpinner(
-                 plotOutput(ns("heatmapPlot"), width = "900px", height = "900px"))
-            )),
-            HTML("<br>"),
-            downloadButton(ns('downloadHeatmap'), "Download Plot")
+      box(title = "Control Box", status = "warning", height = '100%',
+          width = 5,
+          selectInput(inputId = ns('column_col'),
+                      label = 'Color Samples By: ',
+                      choices = c('Disease', 'Condition')
           ),
-          tabPanel("Genes-Dendogram",
-            (div(style='width:900px;overflow-x: scroll;height:900px;overflow-y: scroll;',
-                shinycssloaders::withSpinner(
-                  plotOutput(ns("dendogramPlot"), width = "800px", height = "800px"))
-            )) #,
-            # HTML("<br>"),
-            # downloadButton(ns('downloadDendogramPlot'), "Download Plot")
+          numericInput(inputId = ns('row_clusters'),
+                       label = '# Gene Clusters: ', value='2'),
+          numericInput(inputId = ns('most_abundant_genes'),
+                       label = '# Top Genes (Selected By Abundance): ',
+                       value='0'),
+          selectInput(inputId = ns('transform_type'),
+                      label = 'Transform Method: ',
+                      choices = list("None", "log2", "asinh"), # "logicle")
+                      selected = 'None'
           ),
-          tabPanel("Gene-Clusters",
-                   dataTableOutput(ns("geneClustersOutput")),
-                   HTML("<br>"),
-                   downloadButton(ns("downloadClusters"), "Download csv")
+          conditionalPanel("input.transform_type == 'asinh'",
+                           ns=ns,
+                           numericInput(inputId = ns('cofactor'),
+                                        label = 'Co-factor: ',
+                                        value='5')
+          ),
+          actionButton(ns("heatmapButton"),
+                       label = "Submit",
+                       icon("paper-plane"),
+                       style="color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          )),
+      box(title = "Download Settings", status = "warning", height = '100%',
+          width = 5,
+          numericInput(inputId = ns('plot_width'),
+                       label = 'Plot Width: ',
+                       value='10'),
+          numericInput(inputId = ns('plot_height'),
+                       label = 'Plot Height: ',
+                       value='10'),
+          selectInput(inputId = ns('plot_type'),
+                      label = 'Plot Type: ',
+                      choices = c('svg', 'png', 'pdf'))
+      )
+    ),
+    fluidRow(
+      box(title = "Visualization", status = 'warning', height = '100%',
+          width = 12,
+          tabBox(
+            tabPanel(title = "Heatmap",
+                     (div(style='width:900px;overflow-x: scroll;height:900px;overflow-y: scroll;',
+                          shinycssloaders::withSpinner(
+                            plotOutput(ns("heatmapPlot"))),
+                          downloadButton(ns('downloadHeatmap'), "Download Plot")
+                     ))),
+            tabPanel("Genes-Dendogram",
+                     (div(style='width:900px;overflow-x: scroll;height:900px;overflow-y: scroll;',
+                          shinycssloaders::withSpinner(
+                            plotOutput(ns("dendogramPlot"), width = "800px", height = "800px"))
+                     ))
+            ),
+            tabPanel("Gene-Clusters", width = '100%',
+                     dataTableOutput(ns("geneClustersOutput")),
+                     downloadButton(ns("downloadClusters"), "Download csv")
+            )
           )
-        )
       )
     )
   )
@@ -68,68 +71,55 @@ heatmapPanelUI <- function(id) {
 
 heatmapPanel <- function(input, output, session, getData) {
   ns <- session$ns
- 
-  getDataMatrix <- eventReactive( input$heatmapButton, {
-    df <- data.frame(getData()[[1]])
-    row.names(df) <- df[,1]
-    if (input$most_abundant_genes > 0) {
-      df <- df %>% arrange(desc(rowMeans(df[,2:ncol(df)]))) %>% top_n(input$most_abundant_genes)
-    }
-    
-    switch (input$transform_type,
-      asinh = {
-        df[,2:ncol(df)] = asinh(df[2:ncol(df)]/input$cofactor)
-      },
-      log2 = {
-        df[,2:ncol(df)] <- log(df[2:ncol(df)]+1, 2)
-      }
-    )
-    
-    df
-  })
-  
-  getGeneClusters <- reactive({
-    matrix_df <- getDataMatrix()
-    hclust_gene <- hclust(dist(matrix_df), method = "complete")
-    gene_clusters <- cutree(tree = as.dendrogram(hclust_gene), k = isolate(input$row_clusters))
-    gene_clusters <- data.frame(Gene.Cluster=paste0("cluster-", gene_clusters))
-    row.names(gene_clusters) <- row.names(matrix_df)
-    gene_clusters
-  })
-  
-  output$geneClustersOutput <- DT::renderDataTable({
-    getGeneClusters()
-  })
+  rv <- reactiveValues()
 
-  gen_heatmap <- reactive({
-    req(getDataMatrix())
-    matrix_df <- getDataMatrix()
-    sample_category_df <- data.frame(getData()[[2]])
-    sample_category_df$Sample <- gsub("-", ".", sample_category_df$Sample)
-    sample_col <- data.frame(SampleType=sample_category_df[isolate(input$column_col)])
-    row.names(sample_col) <- sample_category_df$Sample
-    hclust_gene <- hclust(dist(matrix_df), method = "complete")
-    gene_col <- cutree(tree = as.dendrogram(hclust_gene), k = isolate(input$row_clusters))
-    gene_col <- data.frame(Gene.Cluster=paste0("cluster-", gene_col))
-    row.names(gene_col) <- row.names(matrix_df)
-    p <- pheatmap(matrix_df[,2:ncol(matrix_df)], cluster_rows = T, 
-                  show_rownames = F, treeheight_row = 0,
-                  annotation_row = gene_col, annotation_col = sample_col)
-    return(p)    
+  observeEvent(input$heatmapButton, {
+    req(!is.null(getData()))
+
+    abundance <- getData()[[1]]
+    #get most abundant gene, if provided
+    if (input$most_abundant_genes > 0) {
+      most_abun <- abundance[, rowMeans(.SD), by=UniProtID][order(-V1), head(.SD, input$most_abundant_genes)][, UniProtID]
+      abundance <- abundance[UniProtID %in% most_abun]
+    }
+    #tranform data if not none
+    if(input$transform_type != 'None'){
+      abundance <- transform_data(abundance, arg = input$transform_type)
+    }
+
+    rv$gene_clusters <- hierarchial_clustering(dt = abundance,
+                                               clusters = isolate(input$row_clusters))
+
+    rv$abun_matrix <-as.matrix(abundance[,-'UniProtID'])
+    row.names(rv$abun_matrix) <- abundance$UniProtID
+    annotations <- getData()[[2]]
+    annotations[, Sample := gsub('-','.', Sample)]
+    sample_col <- annotations[,.(get(input$column_col))]
+    names(sample_col) <- input$column_col
+    row.names(sample_col) <- annotations[,Sample]
+    rv$sample_col <- sample_col
+
+
+    output$heatmapPlot <-  renderPlot({
+      pheatmap::pheatmap(rv$abun_matrix, cluster_rows = TRUE,
+               show_rownames = F, treeheight_row = 0,
+               annotation_col = rv$sample_col,
+               annotation_row = rv$gene_clusters$clusters,
+               annotation_names_col = F)
+    })
+
+    output$dendogramPlot <- renderPlot({
+      # nodePar <- list(lab.cex = 0.6, pch = c(NA, 19),
+      #                 cex = 0.7, col = "blue")
+      plot(rv$gene_clusters$dendogram,  #nodePar = nodePar,
+           horiz = T)
+    })
+
+    output$geneClustersOutput <- DT::renderDataTable({
+      rv$gene_clusters$clusters
+    })
+
   })
-  
-  output$heatmapPlot <- renderPlot({
-    req(getDataMatrix())
-    p <- gen_heatmap()
-    p
-  })
-  
-  # output$downloadHeatmap <- downloadHandler(
-  #   filename = "heatmap_plot.svg",
-  #   content = function(file) {
-  #     ggsave(file, plot = gen_heatmap(), device = "svg", width = input$plot_width, height = input$plot_height, units="in")
-  #   }
-  # )
 
   output$downloadHeatmap <- downloadHandler(
     filename = function() {
@@ -147,40 +137,38 @@ heatmapPanel <- function(input, output, session, getData) {
                 pdf(file, width = input$plot_width, height = input$plot_height)
               }
       )
-      plot = gen_heatmap()
-      print(plot)
+      pheatmap::pheatmap(rv$abun_matrix, cluster_rows = TRUE,
+                         show_rownames = F, treeheight_row = 0,
+                         annotation_col = rv$sample_col,
+                         annotation_row = rv$gene_clusters$clusters,
+                         annotation_names_col = F)
       dev.off()
     }
   )
-  
-  gen_dendogramplot <- reactive({
-    req(getDataMatrix())
-    df <- getDataMatrix()
-    hclust_gene <- hclust(dist(df), method = "complete")
-    p <- as.dendrogram(hclust_gene) %>% plot(horiz = TRUE)
-    return(p)
-  })
-  
-  output$dendogramPlot <- renderPlot({
-    req(getDataMatrix())
-    p <- gen_dendogramplot()
-    return(p)
-  })
 
-  # output$downloadDendogramPlot <- downloadHandler(
-  #   filename = "dendogram_plot.svg",
-  #   content = function(file) {
-  #     ggsave(file, plot = gen_dendogramplot(), device = "svg")
-  #   }
-  # )
-    
   output$downloadClusters <- downloadHandler(
     filename = function() {
       "Gene_clusters.csv"
     },
     content = function(file) {
       gene_clusters <- getGeneClusters()
-      write.csv(gene_clusters, file, row.names=TRUE, quote=FALSE)
+      write.csv(rv$gene_clusters$clusters, file, row.names=TRUE, quote=FALSE)
     }
-  ) 
+  )
 }
+
+
+transform_data <- function(dt, arg){
+  #df[,2:ncol(df)] = asinh(df[2:ncol(df)]/input$cofactor)
+  # TODO: what is cofactor? why is used? why is it important for this
+  rapply(dt, get(arg), classes = 'numeric', how = 'replace')
+}
+
+hierarchial_clustering <- function(dt, clusters){
+  clust <- hclust(dist(dt[,-'UniProtID']), method = "complete")
+  gene_clusters <- cutree(tree = as.dendrogram(clust), k =clusters)
+  gene_clusters <- data.frame(Gene.Cluster=paste0("cluster-", gene_clusters))
+  row.names(gene_clusters) <- dt[,UniProtID]
+  list('clusters'=gene_clusters, 'dendogram' = as.dendrogram(clust))
+}
+

@@ -25,11 +25,11 @@ sidebar <- dashboardSidebar(
 bodyHome <- tabItem(tabName = "home", homePanelUI("home"))
 bodyLoad <- tabItem(tabName = "load", loadPanelUI("loadPanel"))
 bodyHeatmap <- tabItem(tabName = "heatmap", heatmapPanelUI("heatmapPanel"))
-bodyCosine <- tabItem(tabName = "cosine", cosinePanelUI("cosinePanel"))
-bodyUpsetPlot <- tabItem(tabName = "upsetplot", upsetPlotPanelUI("upsetPlotPanel"))
-bodyDiffExpr <- tabItem(tabName = "diffExpr", diffExprPanelUI("diffExprPanel"))
-bodyUnivariate <- tabItem(tabName = "univariate", univariatePlotPanelUI("univariatePanel"))
-bodyDimRed <- tabItem(tabName = "dimred",  dimReductionUI("dimReduction"))
+#bodyCosine <- tabItem(tabName = "cosine", cosinePanelUI("cosinePanel"))
+#bodyUpsetPlot <- tabItem(tabName = "upsetplot", upsetPlotPanelUI("upsetPlotPanel"))
+#bodyDiffExpr <- tabItem(tabName = "diffExpr", diffExprPanelUI("diffExprPanel"))
+#bodyUnivariate <- tabItem(tabName = "univariate", univariatePlotPanelUI("univariatePanel"))
+#bodyDimRed <- tabItem(tabName = "dimred",  dimReductionUI("dimReduction"))
 
 shinyUI(dashboardPage(
     title="MassSpec Dashboard",
@@ -49,17 +49,17 @@ shinyUI(dashboardPage(
             #Upload Data
             bodyLoad,
             #Heatmap
-            bodyHeatmap,
+            bodyHeatmap
             #CosineSimilarity
-            bodyCosine,
+            #bodyCosine,
             #Upset Plot
-            bodyUpsetPlot,
+            #bodyUpsetPlot,
             #Differential Expression
-            bodyDiffExpr,
+            #bodyDiffExpr,
             #Univariate
-            bodyUnivariate,
+            #bodyUnivariate,
             #Dimensionality Reduction
-            bodyDimRed
+            #bodyDimRed
         )
     )
 ))
