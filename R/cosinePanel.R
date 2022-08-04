@@ -5,7 +5,7 @@ cosinePanelUI <- function(id) {
     fluidRow(
       box( title = "Control Box", width = 4, status = "warning",
            tabBox(id = "cosinePlot", height = "100%", width = "100%",
-                  tabPanel("cosinePlot",
+                  tabPanel("Cosine Plot",
                            selectInput(inputId = ns('column_col'),
                                        label = 'Color Samples By: ',
                                        choices = c('Disease', 'Condition')
@@ -20,7 +20,7 @@ cosinePanelUI <- function(id) {
                                         style="color: #fff; background-color: #337ab7; border-color: #2e6da4"
                            )
                   ),
-                  tabPanel(tagList(shiny::icon("gear"), "Settings"),
+                  tabPanel(tagList(shiny::icon("gear"), "Download Settings"),
                            numericInput(inputId = ns('plot_width'), label = 'Plot Width: ', value='10'),
                            numericInput(inputId = ns('plot_height'), label = 'Plot Height: ', value='10'),
                            selectInput(inputId = ns('plot_type'),
