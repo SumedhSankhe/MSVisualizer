@@ -29,7 +29,7 @@ bodyCosine <- tabItem(tabName = "cosine", cosinePanelUI("cosinePanel"))
 bodyUpsetPlot <- tabItem(tabName = "upsetplot", upsetPlotPanelUI("upsetPlotPanel"))
 bodyDiffExpr <- tabItem(tabName = "diffExpr", diffExprPanelUI("diffExprPanel"))
 bodyUnivariate <- tabItem(tabName = "univariate", univariatePlotPanelUI("univariatePanel"))
-#bodyDimRed <- tabItem(tabName = "dimred",  dimReductionUI("dimReduction"))
+bodyDimRed <- tabItem(tabName = "dimred",  dimReductionUI("dimReduction"))
 
 shinyUI(dashboardPage(
     title="MassSpec Dashboard",
@@ -57,9 +57,9 @@ shinyUI(dashboardPage(
             #Differential Expression
             bodyDiffExpr,
             #Univariate
-            bodyUnivariate
+            bodyUnivariate,
             #Dimensionality Reduction
-            #bodyDimRed
+            bodyDimRed
         )
     )
 ))

@@ -85,18 +85,18 @@ diffExprPanel <- function(input, output, session, getData) {
     })
   })
 
-  toListen <- reactive({
-    list(input$selectCondition1, input$selectCondition2)
-  })
-
-  observeEvent(toListen(),{
-    isNumeric <- vapply(getData()[[1]], is.numeric, logical(1))
-    numeric.cols <- names(isNumeric)[isNumeric]
-    lapply(c("selectCondition1Cols","selectCondition2Cols"), function(x){
-      updateSelectizeInput(session = session, inputId = x, choices = numeric.cols,
-                           server = T, selected = NULL)
-    })
-  })
+  # toListen <- reactive({
+  #   list(input$selectCondition1, input$selectCondition2)
+  # })
+  #
+  # observeEvent(toListen(),{
+  #   isNumeric <- vapply(getData()[[1]], is.numeric, logical(1))
+  #   numeric.cols <- names(isNumeric)[isNumeric]
+  #   lapply(c("selectCondition1Cols","selectCondition2Cols"), function(x){
+  #     updateSelectizeInput(session = session, inputId = x, choices = numeric.cols,
+  #                          server = T, selected = NULL)
+  #   })
+  # })
 
 
   observeEvent(input$volcanoPlotButton,{
@@ -139,7 +139,7 @@ diffExprPanel <- function(input, output, session, getData) {
                                                 drawConnectors = TRUE,
                                                 subtitle = '',
                                                 title = '',
-                                                max.overlaps = 25,
+                                                #max.overlaps = 25,
                                                 ylab = bquote(~-Log[10] ~ italic(adj.P.Val)))
 
 
