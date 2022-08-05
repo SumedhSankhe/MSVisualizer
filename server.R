@@ -8,7 +8,7 @@ shinyServer(
         callModule(cosinePanel, "cosinePanel", countsData)
         callModule(upsetPlotPanel, "upsetPlotPanel", countsData)
         callModule(diffExprPanel, "diffExprPanel", countsData)
-        #callModule(univariatePlotPanel, "univariatePanel", countsData)
+        callModule(univariatePlotPanel, "univariatePanel", countsData)
         #callModule(dimReduction, "dimReduction", countsData)
     }
 )

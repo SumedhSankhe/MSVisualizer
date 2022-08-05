@@ -3,8 +3,7 @@ heatmapPanelUI <- function(id) {
   tagList(
     h3("HeatMap"),
     fluidRow(
-      box(title = "Control Box", status = "warning", height = '100%',
-          width = 5,
+      box(title = 'Control Box', status = 'primary', width = 4,# solidHeader = T,
           selectInput(inputId = ns('column_col'),
                       label = 'Color Samples By: ',
                       choices = c('Disease', 'Condition')
@@ -29,9 +28,9 @@ heatmapPanelUI <- function(id) {
                        label = "Submit",
                        icon("paper-plane"),
                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"
-          )),
-      box(title = "Download Settings", status = "warning", height = '100%',
-          width = 5,
+          ),
+          br(), hr(style = "border-top: 1px solid #000000;"), br(),
+          h4('Download Settings'),
           numericInput(inputId = ns('plot_width'),
                        label = 'Plot Width: ',
                        value='10'),
@@ -41,28 +40,26 @@ heatmapPanelUI <- function(id) {
           selectInput(inputId = ns('plot_type'),
                       label = 'Plot Type: ',
                       choices = c('svg', 'png', 'pdf'))
-      )
-    ),
-    fluidRow(
-      box(title = "Visualization", status = 'warning', height = '100%',
-          width = 12,
-          tabBox(width = 12,
-            tabPanel(title = "Heatmap",
-                     (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
-                          shinycssloaders::withSpinner(
-                            plotOutput(ns("heatmapPlot"))),
-                          downloadButton(ns('downloadHeatmap'), "Download Plot")
-                     ))),
-            tabPanel("Genes-Dendogram",
-                     (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
-                          shinycssloaders::withSpinner(
-                            plotOutput(ns("dendogramPlot")))
-                     ))
-            ),
-            tabPanel("Gene-Clusters", width = '100%',
-                     dataTableOutput(ns("geneClustersOutput")),
-                     downloadButton(ns("downloadClusters"), "Download csv")
-            )
+      ),
+      box(title = "Visualization", status = 'warning',width = 8, #solidHeader = T,
+          tabBox(height = "100%", width = "100%",
+                 tabPanel(title = "Heatmap",
+                          (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
+                               shinycssloaders::withSpinner(
+                                 plotOutput(ns("heatmapPlot"))),
+                               downloadButton(ns('downloadHeatmap'), "Download Plot")
+                          ))
+                 ),
+                 tabPanel("Genes-Dendogram",
+                          (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
+                               shinycssloaders::withSpinner(
+                                 plotOutput(ns("dendogramPlot")))
+                          ))
+                 ),
+                 tabPanel("Gene-Clusters", width = '100%',
+                          dataTableOutput(ns("geneClustersOutput")),
+                          downloadButton(ns("downloadClusters"), "Download csv")
+                 )
           )
       )
     )

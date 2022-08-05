@@ -1,8 +1,9 @@
 upsetPlotPanelUI <- function(id) {
   ns <- NS(id)
   tagList(
+    h3("Upset Plot"),
     fluidRow(
-      box( title = "Control Box", width = 4, status = "warning",
+      box( title = "Control Box", width = 4, status = "primary",
            tabBox(id = "upsetPlot", height = "100%", width = "100%",
                   tabPanel("Upset Plot",
                            selectInput(inputId = ns('upset_by'),
@@ -37,24 +38,23 @@ upsetPlotPanelUI <- function(id) {
                   )
            )
       ),
-      box(
-        status = "warning", width = 8,
-        tabBox(id = "displayTab", height = "100%", width = "100%",
-               tabPanel(title="Upset Plot",
-                        shinycssloaders::withSpinner(
+      box(title = 'Visualization', status = "warning", width = 8,
+          tabBox(id = "displayTab", height = "100%", width = "100%",
+                 tabPanel(title="Upset Plot",
+                          shinycssloaders::withSpinner(
+                            (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
+                                 plotOutput(ns("upsetPlot"))))
+                          ),
+                          HTML("<br>"),
+                          downloadButton(ns('downloadUpsetplot'), "Download Plot")
+                 ),
+                 tabPanel("Upset Results",
                           (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
-                               plotOutput(ns("upsetPlot"))))
-                        ),
-                        HTML("<br>"),
-                        downloadButton(ns('downloadUpsetplot'), "Download Plot")
-               ),
-               tabPanel("Upset Results",
-                        (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
-                             dataTableOutput(ns("upsetResults")))),
-                        HTML("<br>"),
-                        downloadButton(ns("downloadUpsetReport"), "Download csv")
-               )
-        )
+                               dataTableOutput(ns("upsetResults")))),
+                          HTML("<br>"),
+                          downloadButton(ns("downloadUpsetReport"), "Download csv")
+                 )
+          )
       )
     )
   )

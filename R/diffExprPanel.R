@@ -3,8 +3,8 @@ diffExprPanelUI <- function(id) {
   tagList(
     h3("Differential Expression Plots"),
     fluidRow(
-      box( title = "Control Box", width = 4, status = "warning",
-           tabBox(id = "dimred", height = "100%", width = "100%",
+      box( title = "Control Box", width = 4, status = "primary",
+           tabBox(id = "diffexpr", height = "100%", width = "100%",
                   tabPanel("Volcano Plot",
                            numericInput(inputId = ns('pCutoff'),
                                         label = 'P-val Cutoff: ', value='1e-5'),
@@ -37,8 +37,10 @@ diffExprPanelUI <- function(id) {
                            )
                   ),
                   tabPanel(tagList(shiny::icon("gear"), "Download Settings"),
-                           numericInput(inputId = ns('plot_width'), label = 'Plot Width: ', value='15'),
-                           numericInput(inputId = ns('plot_height'), label = 'Plot Height: ', value='10'),
+                           numericInput(inputId = ns('plot_width'),
+                                        label = 'Plot Width: ', value='15'),
+                           numericInput(inputId = ns('plot_height'),
+                                        label = 'Plot Height: ', value='10'),
                            selectInput(inputId = ns('plot_type'),
                                        label = 'Plot Type: ',
                                        choices = c('svg', 'png', 'pdf')
@@ -46,24 +48,23 @@ diffExprPanelUI <- function(id) {
                   )
            )
       ),
-      box(
-        status = "warning", width = 8,
-        tabBox(id = "displayTab", height = "100%", width = "100%",
-          tabPanel(title="Volcano Plot",
-            (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
-            shinycssloaders::withSpinner(
-                    plotOutput(ns("volcanoPlot")))
-            )),
-            HTML("<br>"),
-            downloadButton(ns('downloadVolcanoPlot'), "Download Plot")
-          ),
-          tabPanel("Diff Expr Results",
-                   (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
-                   dataTableOutput(ns("diffExprResults")))),
-                   HTML("<br>"),
-                   downloadButton(ns("downloadDiffExprReport"), "Download csv")
+      box(title = 'Visualization', status = "warning", width = 8,
+          tabBox(id = "displayTab", height = "100%", width = "100%",
+                 tabPanel(title="Volcano Plot",
+                          (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
+                               shinycssloaders::withSpinner(
+                                 plotOutput(ns("volcanoPlot")))
+                          )),
+                          HTML("<br>"),
+                          downloadButton(ns('downloadVolcanoPlot'), "Download Plot")
+                 ),
+                 tabPanel("Diff Expr Results",
+                          (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
+                               dataTableOutput(ns("diffExprResults")))),
+                          HTML("<br>"),
+                          downloadButton(ns("downloadDiffExprReport"), "Download csv")
+                 )
           )
-        )
       )
     )
   )

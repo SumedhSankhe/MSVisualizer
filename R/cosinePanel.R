@@ -3,7 +3,7 @@ cosinePanelUI <- function(id) {
   tagList(
     h3("Cosine Similarity/Dissimilarity plots"),
     fluidRow(
-      box( title = "Control Box", width = 4, status = "warning",
+      box( title = "Control Box", width = 4, status = "primary",
            tabBox(id = "cosinePlot", height = "100%", width = "100%",
                   tabPanel("Cosine Plot",
                            selectInput(inputId = ns('column_col'),
@@ -30,15 +30,13 @@ cosinePanelUI <- function(id) {
                   )
            )
       ),
-      box(
-        status = "warning", width = 8,
+      box(title = 'Visualization', status = "warning", width = 8,
           (div(style='width:auto;overflow-x: scroll;height:auto;overflow-y: scroll;',
                shinycssloaders::withSpinner(
-               plotOutput(ns("cosinePlot"))))
-        ),
-        HTML("<br>"),
-        downloadButton(ns('downloadCosineplot'), "Download Plot")
-
+                 plotOutput(ns("cosinePlot"))))
+          ),
+          HTML("<br>"),
+          downloadButton(ns('downloadCosineplot'), "Download Plot")
       )
     )
   )

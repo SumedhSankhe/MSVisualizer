@@ -1,37 +1,32 @@
 loadPanelUI <- function(id) {
   ns <- NS(id)
   tagList(
-    h3("Load Data"),
+    h3("Load"),
     fluidRow(
-      box( title = "Data upload & settings", width = 4, status = "warning",
-           tabBox(id = "loadtab", height = "100%", width = "100%",
-                  tabPanel("Upload",
-                           fileInput( ns('localfile'),
-                                      label = "Choose file to upload",
-                                      accept = c('.xls', '.xlsx') ),
-                           div(style = "margin-top:-25px"),
-                           a(href="MSdata.xlsx", "Example: MSdata.xlsx",
-                             download=NA, target="_blank")
-                  )
-           )
+      box(title = "Data upload & settings", width = 4, status = "primary",
+          fileInput( ns('localfile'),
+                     label = "Choose file to upload",
+                     accept = c('.xls', '.xlsx') ),
+          div(style = "margin-top:-25px"),
+          a(href="MSdata.xlsx", "Example: MSdata.xlsx",
+            download=NA, target="_blank")
       ),
-      box(
-        status = "warning", width = 8,
-        tabBox(id = "displayTab", height = "100%", width = "100%",
-               tabPanel("Matrix Stats",
-                        dataTableOutput(ns("tableOutput")),
-                        br(),
-                        br()
-               ),
-               tabPanel("Upset By Group",
-                        dataTableOutput(ns("groupOutput"))
-               ),
-               tabPanel("Upset By Sample",
-                        dataTableOutput(ns("sampleOutput"))
-               ),
-               tabPanel("Classification",
-                        dataTableOutput(ns("classificationOutput"))
-               )))
+      box(title = 'Summary Stats', status = "warning", width = 8,
+          tabBox(id = "displayTab", height = "100%", width = "100%",
+                 tabPanel("Matrix Stats",
+                          dataTableOutput(ns("tableOutput")),
+                          br(),
+                          br()
+                 ),
+                 tabPanel("Upset By Group",
+                          dataTableOutput(ns("groupOutput"))
+                 ),
+                 tabPanel("Upset By Sample",
+                          dataTableOutput(ns("sampleOutput"))
+                 ),
+                 tabPanel("Classification",
+                          dataTableOutput(ns("classificationOutput"))
+                 )))
     )
   )
 }
