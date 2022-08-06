@@ -117,7 +117,7 @@ dimReduction <- function(input, output, session, getData) {
   tsne_projs <- callModule(tsnePanel, "tsne", rv$abundance, input$smarkers,
                            rv$annotation, proj_dims)
   pca_projs  <- callModule(pcaPanel, "pca", rv$abundance, input$smarkers,
-                           getClassificationData)
+                           rv$annotation)
   umap_projs <- callModule(umapPanel, "umap", rv$abundance, input$smarkers,
                            rv$annotation, proj_dims)
 
@@ -150,97 +150,90 @@ dimReduction <- function(input, output, session, getData) {
             }
     )
 
+    plotdt <-proj_results$projOutput
+    rv$plot <- ggplot(data = plotdt,
+                      aes_string(x = names(plotdt)[2], y = names(plotdt)[3],
+                                 group = input$cmarker, color = input$cmarker))+
+      geom_point()+
+      stat_ellipse()+
+      theme_bw()+
+      theme(text = element_text(size = 16))
 
-    plotdt <-
+    output$projectedPlot <- renderPlotly({
+      ggplotly(rv$plot)
+    })
 
-    rv$plot <- ggplot(data = )
+    if(input$drmethod == 'PCA'){
+      output$eigen_contrib_plot <- renderPlot({
+        factoextra::fviz_eig(proj_results$pca, addlabels = TRUE,
+                             ylim = c(0, 50))
 
-  })
+      })
 
-  get_projectedplot <- reactive({
-    req(compute_projs())
-    #req(selected_markers())
+      output$var_contrib_plot <- renderPlot({
+        factoextra::fviz_pca_var(proj_results$pca,
+                            axes = c(isolate(input$x_dim), isolate(input$y_dim)),
+                            col.var = "contrib",
+                            select.var=list(contrib=5),
+                            repel=TRUE)
 
-    if (isolate(input$drmethod) == 'PCA') {
-      color_marker <- compute_projs()$projInput %>% dplyr::select( isolate(input$cmarker) ) %>% unlist()
-      projected_ouput <- compute_projs()$projOutput
-      projected_ouput$tooltip <- rownames(projected_ouput)
-      p <- fviz_pca_ind(projected_ouput,
-                                axes = c(isolate(input$x_dim), isolate(input$y_dim)),
-                                addEllipses = TRUE,
-                                geom.ind = "point",
-                                geom.text=color_marker,
-                                pointshape=21,
-                                pointsize = 2.5,
-                                fill.ind = color_marker,
-                                repel=TRUE) + scale_color_viridis_d()
-    }
-    else {
-      plot_data <- cbind(compute_projs()$projOutput, compute_projs()$projInput %>% dplyr::select( isolate(input$cmarker) ))
+      })
 
-      if (class(plot_data[[ isolate(input$cmarker) ]]) %in% c("numeric","integer") ) {
-        p <- ggplot(plot_data, aes_string(x = names(plot_data)[1], y = names(plot_data)[2]), group= isolate(input$cmarker) ) +
-            geom_point(aes_string(color=input$cmarker), size=3) + scale_color_viridis_c()
-      } else {
-        p <- ggplot(plot_data, aes_string(x = names(plot_data)[1], y = names(plot_data)[2]), group= isolate(input$cmarker) ) +
-            geom_point(aes_string(color= isolate(input$cmarker) ), size=3) + scale_colour_viridis_d()
-      }
-      p <- p + theme( text = element_text(size=16) )
-    }
-    p
-  })
-
-  output$projectedPlot <- renderPlotly({
-    p <- ggplotly(get_projectedplot(), tooltip = "text")
-    for (i in 1:length(p$x$data)){
-      if (!is.null(p$x$data[[i]]$name)){
-        p$x$data[[i]]$name =  gsub("\\(","",str_split(p$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-    p
-  })
-
-  output$eigen_contrib_plot <- renderPlot({
-    req(compute_projs())
-    #req(selected_markers())
-
-    if (isolate(input$drmethod) == 'PCA') {
-      p <- fviz_eig(compute_projs()$projOutput, addlabels = TRUE, ylim = c(0, 50))
-    }
-    else {
-      p <- ggplot()
-    }
-    p
-
-  })
-
-  output$var_contrib_plot <- renderPlot({
-    req(compute_projs())
-    #req(selected_markers())
-
-    if (isolate(input$drmethod) == 'PCA') {
-      p <- fviz_pca_var(compute_projs()$projOutput,
-                        axes = c(isolate(input$x_dim), isolate(input$y_dim)),
-                        col.var = "contrib",
-                        select.var=list(contrib=5),
-                        repel=TRUE)
-    }
-    else {
-      p <- ggplot()
-    }
-    p
-
-  })
-
-  output$pca_contrib_results <- DT::renderDataTable({
-    req(compute_projs())
-    if (isolate(input$drmethod) == 'PCA') {
-      as.data.frame(get_pca_var(compute_projs()$projOutput)$contrib)
-    }
-    else {
-      data.frame()
+      output$pca_contrib_results <- DT::renderDataTable({
+        rv$contrib <- as.data.frame(
+          factoextra::get_pca_var(proj_results$pca)$contrib
+        )
+        rv$contrib
+      })
     }
   })
+
+  # get_projectedplot <- reactive({
+  #   req(compute_projs())
+  #   #req(selected_markers())
+  #
+  #   if (isolate(input$drmethod) == 'PCA') {
+  #     color_marker <- compute_projs()$projInput %>% dplyr::select( isolate(input$cmarker) ) %>% unlist()
+  #     projected_ouput <- compute_projs()$projOutput
+  #     projected_ouput$tooltip <- rownames(projected_ouput)
+  #     p <- fviz_pca_ind(projected_ouput,
+  #                               axes = c(isolate(input$x_dim), isolate(input$y_dim)),
+  #                               addEllipses = TRUE,
+  #                               geom.ind = "point",
+  #                               geom.text=color_marker,
+  #                               pointshape=21,
+  #                               pointsize = 2.5,
+  #                               fill.ind = color_marker,
+  #                               repel=TRUE) + scale_color_viridis_d()
+  #   }
+  #   else {
+  #     plot_data <- cbind(compute_projs()$projOutput, compute_projs()$projInput %>% dplyr::select( isolate(input$cmarker) ))
+  #
+  #     if (class(plot_data[[ isolate(input$cmarker) ]]) %in% c("numeric","integer") ) {
+  #       p <- ggplot(plot_data, aes_string(x = names(plot_data)[1], y = names(plot_data)[2]), group= isolate(input$cmarker) ) +
+  #           geom_point(aes_string(color=input$cmarker), size=3) + scale_color_viridis_c()
+  #     } else {
+  #       p <- ggplot(plot_data, aes_string(x = names(plot_data)[1], y = names(plot_data)[2]), group= isolate(input$cmarker) ) +
+  #           geom_point(aes_string(color= isolate(input$cmarker) ), size=3) + scale_colour_viridis_d()
+  #     }
+  #     p <- p + theme( text = element_text(size=16) )
+  #   }
+  #   p
+  # })
+
+  # output$projectedPlot <- renderPlotly({
+  #   p <- ggplotly(get_projectedplot(), tooltip = "text")
+  #   for (i in 1:length(p$x$data)){
+  #     if (!is.null(p$x$data[[i]]$name)){
+  #       p$x$data[[i]]$name =  gsub("\\(","",str_split(p$x$data[[i]]$name,",")[[1]][1])
+  #     }
+  #   }
+  #   p
+  # })
+
+
+
+
 
   output$download_pca_contrib <- downloadHandler(
     filename = function() {
@@ -248,8 +241,7 @@ dimReduction <- function(input, output, session, getData) {
     },
     content = function(file) {
       if (isolate(input$drmethod) == 'PCA') {
-        pca_contrib_resutls <- as.data.frame(get_pca_var(compute_projs()$projOutput)$contrib)
-        write.csv(deseq_contrib_resutls, file, row.names=TRUE, quote=FALSE)
+        write.csv(rv$contrib, file, row.names=TRUE, quote=FALSE)
       }
     }
   )
@@ -270,8 +262,7 @@ dimReduction <- function(input, output, session, getData) {
                 pdf(file, width = input$plot_width, height = input$plot_height)
               }
       )
-      plot = get_projectedplot()
-      print(plot)
+      rv$plot
       dev.off()
     }
   )

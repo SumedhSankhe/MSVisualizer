@@ -14,7 +14,7 @@ tsnePanel <- function(input, output, session, abundance, smarkers, annotations, 
   ns <- session$ns
 
   compute_tsne_projs <- reactive({
-    if(length(smarkers)!=0 | smarkers != '' | !is.null(smarkers)){
+    if(!is.null(smarkers)){
       abundance <- abundance[, smarkers, with = F]
     }
     abundance <- abundance[complete.cases(abundance),]
@@ -24,16 +24,17 @@ tsnePanel <- function(input, output, session, abundance, smarkers, annotations, 
                            perplexity = input$perplexity, theta = input$theta,
                            eta = input$eta, max_iter = input$max_iter)
 
-
     data_plot <- ts_out$Y[,c(proj_dims()[1], proj_dims()[2])]
     row.names(data_plot) <- rownames(abundance)
     data_plot <- as.data.table(data_plot, keep.rownames = TRUE)
-    setnames(data_plot, names(data_plot), c('rn',paste0('tSNE_',proj_dims())))
+    setnames(data_plot, names(data_plot), c('Sample',paste0('tSNE_',proj_dims())))
 
 
-    anno_sub <- annotations[Sample %in% data_plot$rn]
+    anno_sub <- annotations[Sample %in% data_plot$Sample]
     abundance <- as.data.table(abundance, keep.rownames = T)
     setnames(abundance,'rn', 'Sample')
+
+    data_plot <- data_plot[anno_sub, on = 'Sample']
 
     joined_df <- abundance[anno_sub, on = 'Sample']
     list(projInput=joined_df, projOutput=data_plot)
