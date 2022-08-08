@@ -266,29 +266,4 @@ dimReduction <- function(input, output, session, getData) {
       dev.off()
     }
   )
-
-  # output$downloadProjPlot <- downloadHandler(
-  #   filename = "projected_plot.svg",
-  #   contentType = "image/svg",
-  #   content = function(file) {
-  #     svg(file)#, width = input$plot_width, height = input$plot_height)
-  #     plot = get_projectedplot()
-  #     print(plot)
-  #     dev.off()
-  #   }
-  # )
-
-  # # When a double-click happens, check if there's a brush on the plot.
-  # # If so, zoom to the brush bounds; if not, reset the zoom.
-  # observeEvent(input$plot_dblclick, {
-  #   brush <- input$plot_brush
-  #   if (!is.null(brush)) {
-  #     ranges$x <- c(brush$xmin, brush$xmax)
-  #     ranges$y <- c(brush$ymin, brush$ymax)
-  #
-  #   } else {
-  #     ranges$x <- NULL
-  #     ranges$y <- NULL
-  #   }
-  # })
 }
