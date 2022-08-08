@@ -15,6 +15,8 @@ univariatePlotPanelUI <- function(id) {
                   ),
                   tabPanel(tagList(shiny::icon("gear"), "Settings"),
                            uiOutput(ns("colorChooser")),
+                           actionButton(inputId = ns('update_colors'),
+                                        label = 'Update Color Scheme'),
                            numericInput(inputId = ns('x_axis_text_angle'),
                                         label = 'x-axis text angle: ', value='0'),
                            numericInput(inputId = ns('plot_width'),
@@ -48,34 +50,30 @@ univariatePlotPanel <- function(input, output, session, getData) {
     marker_choices <- getData()[[1]][,1]
     updateSelectInput(inputId = 'marker_selector', label = 'Select Marker:',
                       choices = marker_choices)
-  })
 
-  # output$colorChooser <- renderUI({
-  #   features <- sort(unique(unlist(getData()[[2]][,get(input$sample_group)])))
-  #   LL <- vector("list", length(features))
-  #   for(i in 1:length(features)) {
-  #     LL[[i]] <- list(colourInput(paste("univariatePanel-col",i, sep="_"), features[i], "purple"))
-  #   }
-  #   return(LL)
-  # })
-  #
-  #
-  colors <- reactive({
-    features <- sort(unique(unlist(getData()[[2]][, get(input$sample_group)])))
-    LL <- lapply(seq_along(features), function(i) {
-      input[[paste("col", i, sep="_")]]
+    rv$features <- unique(getData()[[2]][, get(input$sample_group)])
+
+    rv$colors <- lapply(seq_along(rv$features), function(x){
+      colourInput(
+        inputId = sprintf("univariatePanel-col_%s",rv$features[x]),
+        label = rv$features[x], value = 'black'
+      )
     })
-    if (is.null(input$col_1) ) {
-      features <- sort(unique(unlist(getData()[[2]][,get(input$sample_group)])))
-      fill_colors <- rep("purple", length(features))
-    } else {
-      fill_colors <- unlist(LL)
-    }
-    return(fill_colors)
+
+    output$colorChooser <- renderUI({
+      rv$colors
+    })
+
+    rv$new_colors <- unlist(
+      sapply(rv$features, function(x){
+        input[[paste('col_',x)]]
+      }, USE.NAMES = T)
+    )
   })
 
   toListen <- reactive({
-    list(input$marker_selector, input$sample_group, input$x_axis_text_angle)
+    list(input$marker_selector, input$sample_group, input$x_axis_text_angle,
+         input$update_colors)
   })
 
   observeEvent(toListen(),{
@@ -85,12 +83,18 @@ univariatePlotPanel <- function(input, output, session, getData) {
     setnames(marker_long, c('variable', 'value'), c('Sample', 'Exprs'))
     marker_stats <- marker_long[getData()[[2]], on='Sample']
 
+    if(length(rv$features) != length(rv$new_colors)){
+      rv$new_colors <- rep('black', length(rv$features))
+    }
+
+    #print(bar_colors)
     rv$plot <- ggplot(data = marker_stats,
                       aes(x = get(input$sample_group), y = Exprs ,
                           fill = get(input$sample_group)))+
       geom_boxplot(outlier.color = 'red')+
       labs(x = input$sample_group, fill = input$sample_group)+
       theme_bw()+
+      scale_fill_manual(values = rv$new_colors)+
       theme(text = element_text(size = 16),
             axis.text.x = element_text(angle = input$x_axis_text_angle),
             legend.position = 'top')
@@ -99,13 +103,13 @@ univariatePlotPanel <- function(input, output, session, getData) {
   output$univariatePlot <- renderPlotly({
     req(!is.null(rv$plot))
     #browser()
-    if(length(unique(colors())) == 1){
-      ggplotly(rv$plot)
-    } else {
-      rv$plot <- rv$plot+
-        scale_fill_manual(values = )
-      ggplotly(rv$plot)
-    }
+    #if(length(unique(colors())) == 1){
+    ggplotly(rv$plot)
+    #} else {
+    # rv$plot <- rv$plot+
+    #    scale_fill_manual(values = )
+    # ggplotly(rv$plot)
+    #}
   })
 
 

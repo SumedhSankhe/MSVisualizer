@@ -22,7 +22,7 @@ pcaPanel <- function(input, output, session, abundance, smarkers, annotations) {
     abundance <- abundance[-caret::nearZeroVar(abundance)]
 
     pca_out <- prcomp(abundance, scale. = TRUE)
-    scores <- as.data.table(pca$x,keep.rownames = T)
+    scores <- as.data.table(pca_out$x,keep.rownames = T)
     setnames(scores, 'rn','Sample')
 
     anno_sub <- annotations[Sample %in% scores$Sample]
@@ -31,7 +31,7 @@ pcaPanel <- function(input, output, session, abundance, smarkers, annotations) {
     joined_df <- abundance[anno_sub, on = 'Sample']
     scores <- scores[anno_sub, on = 'Sample']
 
-    list(projOutput=scores, pca = pca, projInput=joined_df)
+    list(projOutput=scores, pca = pca_out, projInput=joined_df)
   })
   return(compute_pca_projs)
 }
