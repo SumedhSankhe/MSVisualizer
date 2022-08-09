@@ -63,10 +63,12 @@ univariatePlotPanel <- function(input, output, session, getData) {
     output$colorChooser <- renderUI({
       rv$colors
     })
+  })
 
-    rv$new_colors <- unlist(
+  new_colors <- reactive({
+    unlist(
       sapply(rv$features, function(x){
-        input[[paste('col_',x)]]
+        input[[paste('col',x, sep = '_')]]
       }, USE.NAMES = T)
     )
   })
@@ -83,11 +85,13 @@ univariatePlotPanel <- function(input, output, session, getData) {
     setnames(marker_long, c('variable', 'value'), c('Sample', 'Exprs'))
     marker_stats <- marker_long[getData()[[2]], on='Sample']
 
-    if(length(rv$features) != length(rv$new_colors)){
+
+    if(length(rv$features) != length(new_colors())){
       rv$new_colors <- rep('black', length(rv$features))
+    }else{
+      rv$new_colors <- new_colors()
     }
 
-    #print(bar_colors)
     rv$plot <- ggplot(data = marker_stats,
                       aes(x = get(input$sample_group), y = Exprs ,
                           fill = get(input$sample_group)))+
