@@ -104,14 +104,12 @@ dimReduction <- function(input, output, session, getData) {
   output$dimred_markers_selector <- renderUI({
     selectizeInput(inputId = ns('smarkers'), label = 'Select Features: ',
                    multiple=TRUE, choices = rv$numeric.cols,
-                   options = list(maxItems = 100, placeholder = 'All')
-    )
+                   options = list(maxItems = 100, placeholder = 'All'))
   })
 
   output$cmarker_selector <- renderUI({
     selectInput(inputId = ns('cmarker'), label = 'Color By Feature: ',
-                choices = get_classification_choices()
-    )
+                choices = get_classification_choices())
   })
 
   tsne_projs <- callModule(tsnePanel, "tsne", rv$abundance, input$smarkers,
@@ -123,11 +121,11 @@ dimReduction <- function(input, output, session, getData) {
 
 
   proj_dims <- reactive({
-    return(c(input$x_dim, input$y_dim))
+    c(input$x_dim, input$y_dim)
   })
 
   get_classification_choices <- reactive({
-    return( names(getData()[[2]])[-1] )
+    names(getData()[[2]])[-1]
   })
 
 
@@ -147,13 +145,14 @@ dimReduction <- function(input, output, session, getData) {
             },
             UMAP = {
               proj_results <- umap_projs()
-            }
-    )
+            })
 
     plotdt <-proj_results$projOutput
     rv$plot <- ggplot(data = plotdt,
-                      aes_string(x = names(plotdt)[2], y = names(plotdt)[3],
-                                 group = input$cmarker, color = input$cmarker))+
+                      aes_string(x = names(plotdt)[2],
+                                 y = names(plotdt)[3],
+                                 group = input$cmarker,
+                                 color = input$cmarker))+
       geom_point()+
       stat_ellipse()+
       theme_bw()+
@@ -184,6 +183,13 @@ dimReduction <- function(input, output, session, getData) {
           factoextra::get_pca_var(proj_results$pca)$contrib
         )
         rv$contrib
+      })
+    } else{
+      output$eigen_contrib_plot <- renderPlot({
+        ggplot()
+      })
+      output$var_contrib_plot <- renderPlot({
+        ggplot()
       })
     }
   })

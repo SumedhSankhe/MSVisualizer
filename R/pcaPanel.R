@@ -9,9 +9,7 @@ pcaPanelUI <- function(id) {
 #' @export
 pcaPanel <- function(input, output, session, abundance, smarkers, annotations) {
   ns <- session$ns
-
   compute_pca_projs <- reactive({
-
     if(!is.null(smarkers)){
       abundance <- abundance[, smarkers, with = F]
     }

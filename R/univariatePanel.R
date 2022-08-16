@@ -5,7 +5,7 @@ univariatePlotPanelUI <- function(id) {
     fluidRow(
       box( title = 'Control Box', width = 4, status = "primary",
            tabBox(id = "univariatePlot", height = "100%", width = "100%",
-                  tabPanel("univariatePlot",
+                  tabPanel("Univariate Plot",
                            selectInput(inputId = ns('sample_group'),
                                        label = 'Categorize by: ',
                                        choices = c('Condition', 'Disease')
@@ -16,7 +16,11 @@ univariatePlotPanelUI <- function(id) {
                   tabPanel(tagList(shiny::icon("gear"), "Settings"),
                            uiOutput(ns("colorChooser")),
                            actionButton(inputId = ns('update_colors'),
-                                        label = 'Update Color Scheme'),
+                                        label = 'Update Color Scheme',
+                                        icon("paper-plane"),
+                                        style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                           br(),
+                           hr(),
                            numericInput(inputId = ns('x_axis_text_angle'),
                                         label = 'x-axis text angle: ', value='0'),
                            numericInput(inputId = ns('plot_width'),
